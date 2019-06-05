@@ -77,6 +77,7 @@ class BarcodeFinder():
         cv2.waitKey(0)
         cv2.imwrite('{}{}_processed.jpg'.format(self.PATH, self.image_name), copy)
 
+    # Mostra a imagem
     def show_image(self, image=None, text='Image'):
         if image is None:
             image = self.image
