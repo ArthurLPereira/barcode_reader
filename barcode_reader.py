@@ -64,6 +64,7 @@ class BarcodeFinder():
         rect = cv2.minAreaRect(c)
         box = cv2.boxPoints(rect)
         box = np.int0(box)
+        # print(box)
         return box
 
     # Aplicando retângulo na imagem original    
@@ -81,9 +82,31 @@ class BarcodeFinder():
     def show_image(self, image=None, text='Image'):
         if image is None:
             image = self.image
+        cv2.AGAST_FEATURE_DETECTOR_AGAST_7_12D
         cv2.imshow(text, image)
         cv2.waitKey(0)
 
+    def crop_rect(self, img=None, rect=None):
+        if img is None:
+            img = self.image
+        if rect is None:
+            rect = self.find_rectangle()
+        # get the parameter of the small rectangle
+        center, size, angle = rect[0], rect[1], rect[2]
+        center, size = tuple(map(int, center)), tuple(map(int, size))
+
+        # get row and col num in img
+        height, width = img.shape[0], img.shape[1]
+
+        # calculate the rotation matrix
+        M = cv2.getRotationMatrix2D(center, angle, 1)
+        # rotate the original image
+        img_rot = cv2.warpAffine(img, M, (width, height))
+
+        # now rotated rectangle becomes vertical and we crop it
+        img_crop = cv2.getRectSubPix(img_rot, size, center)
+
+        return img_crop, img_rot
 
 
 if __name__ == "__main__":
@@ -91,7 +114,18 @@ if __name__ == "__main__":
     try:
         finder = BarcodeFinder(path)
         finder.show_image()
+        imagem = finder.grayscale()
+        finder.show_image(imagem, 'Escala de cinza')
+        imagem = finder.sobel(imagem)
+        finder.show_image(imagem)
+        imgagem = finder.threshold(imagem)
+        finder.show_image(imagem)
+        imagem = finder.erode_dilate()
+        finder.show_image(imagem)
         finder.final_product()
+
+        # img_crop, img_rot = finder.crop_rect()
+        # finder.show_image(img_crop, 'Barcode')
     except Exception as exp:
         print(exp)
     pass
